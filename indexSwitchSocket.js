@@ -8,23 +8,31 @@ require('dotenv').config();
 // 	output: process.stdout
 // });
 
+let client;
+
+if (!process.env.MQTT_URL) {
 // Connect to the MQTT broker
-const client = mqtt.connect('mqtt://192.168.86.184:1883');
+	client = mqtt.connect(process.env.MQTT_URL);
 
-client.on('connect', () => {
-	console.log('Connected to MQTT broker');
-	// console.log('Type "ON", "OFF", or "TOGGLE" to control socket:');
-});
+	client.on('connect', () => {
+		console.log('Connected to MQTT broker');
+		// console.log('Type "ON", "OFF", or "TOGGLE" to control socket:');
+	});
 
-client.on('error', (error) => {
-	console.log('Error:', error);
-});
+	client.on('error', (error) => {
+		console.log('Error:', error);
+	});
+}
 
 // Function to send a command to the fingerbot
 function sendSwitchCommand(action) {
 	const topic = 'zigbee2mqtt/Night bug/set';
 	const message = JSON.stringify({ state: action });
 
+	if (!client) {
+		console.log('MQTT client not initialized');
+		return;
+	}
 	client.publish(topic, message, () => {
 		console.log(`Sent '${action}' command to socket`);
 	});
